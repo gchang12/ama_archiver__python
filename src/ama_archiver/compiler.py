@@ -94,6 +94,8 @@ def fetch_ama_query(url: str, ama_query):
     return ama_query
 
 def fetch_ama_queries(ama_index: List[dict]) -> None:
+    # TODO: save ama_query as soon as it is retrieved
+    # TODO: check if ama_query exists; attempt to retrieve if not; skip if yes.
     # compile entries from sqlite database
     ama_queries = []
     expected_fields = {"url", "question_text", "answer_text", "extra_text"}
@@ -122,6 +124,12 @@ def save_ama_queries(ama_queries: List[dict]) -> None:
     with sqlite3.connect(full_dbpath) as cnxn:
         crs = cnxn.execute("CREATE TABLE IF NOT EXISTS ama_queries(url TEXT, question_text TEXT, answer_text TEXT, extra_text TEXT);")
         crs.executemany("INSERT INTO ama_queries VALUES(:url, :question_text, :answer_text, :extra_text);", ama_queries)
+
+def identify_duplicates(ama_index: List[dict]):
+    """
+    Identifies duplicate URLs for a given (cc_name, fan_name) pair.
+    """
+    pass
 
 if __name__ == '__main__':
     odir_path = Path(ODIR_NAME)

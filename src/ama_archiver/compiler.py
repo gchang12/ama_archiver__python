@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 """
 """
+# TODO: Document and touch-up
+# TODO: Add unit tests to complement these functions
+# TODO: Figure out what other src/* files do in the usual way.
 
 FIRST_CC_NAME = "Daron Nefcy"
 LC_URL = "https://old.reddit.com/r/StarVStheForcesofEvil/comments/clnrdv/link_compendium_of_questions_and_answers_from_the/"
@@ -15,6 +18,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import sqlite3
 from typing import List
+import logging
 
 def fetch_raw_index() -> str:
     response = r.get(LC_URL)
@@ -100,6 +104,7 @@ def fetch_ama_queries(ama_index: List[dict]) -> None:
     ama_queries = []
     expected_fields = {"url", "question_text", "answer_text", "extra_text"}
     total_num_queries = len(ama_index)
+    # should record this somewhere
     total_num_tries = 1
     # record partial retrieval results
     for recordno, record in enumerate(ama_index, start=1):

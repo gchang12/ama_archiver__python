@@ -9,15 +9,8 @@ This module contains functions that fetch and store queries from the source.
 # TODO: Add unit tests to complement these functions
 # TODO: Figure out what other src/* files do in the usual way.
 
-FIRST_CC_NAME = "Daron Nefcy"
-LC_URL = "https://old.reddit.com/r/StarVStheForcesofEvil/comments/clnrdv/link_compendium_of_questions_and_answers_from_the/"
-LC_FNAME = "link-compendium"
-LC_DBNAME = "ama_database"
-ODIR_NAME = "output"
-
 import requests as r
 from bs4 import BeautifulSoup
-
 
 from pathlib import Path
 import sqlite3
@@ -56,7 +49,7 @@ def fetch_ama_queries(ama_index: List[dict]) -> List[dict]:
     # TODO: check if ama_query exists; attempt to retrieve if not; skip if yes.
     # compile entries from sqlite database
     ama_queries = []
-    expected_fields = {"url", "question_text", "answer_text", "extra_text"}
+    expected_fields = {"url", "question_text", "answer_text"}
     total_num_queries = len(ama_index)
     # should record this somewhere
     total_num_tries = 1
@@ -84,19 +77,8 @@ def save_ama_queries(ama_queries: List[dict], full_dbpath: Path) -> None:
     #full_dbpath = Path(ODIR_NAME, LC_DBNAME + ".db")
     print("Saving queries to %s" % full_dbpath)
     with sqlite3.connect(full_dbpath) as cnxn:
-        crs = cnxn.execute("CREATE TABLE IF NOT EXISTS ama_queries(url TEXT, question_text TEXT, answer_text TEXT, extra_text TEXT);")
-        crs.executemany("INSERT INTO ama_queries VALUES(:url, :question_text, :answer_text, :extra_text);", ama_queries)
+        crs = cnxn.execute("CREATE TABLE IF NOT EXISTS ama_queries(url TEXT, question_text TEXT, answer_text TEXT);")
+        crs.executemany("INSERT INTO ama_queries VALUES(:url, :question_text, :answer_text);", ama_queries)
 
 if __name__ == '__main__':
-    odir_path = Path(ODIR_NAME)
-    full_opath = odir_path.joinpath(LC_FNAME + ".html")
-    if not full_opath.exists():
-        raw_index = fetch_raw_index(LC_URL)
-    else:
-        raw_index = full_opath.read_text()
-    save_raw_index(raw_index, odir_path, LC_FNAME)
-    ama_index = compile_ama_index(raw_index, FIRST_CC_NAME)
-    full_dbpath = odir_path.joinpath(LC_DBNAME + ".db")
-    #save_ama_index(ama_index)
-    ama_queries = fetch_ama_queries(ama_index)
-    save_ama_queries(ama_queries, full_dbpath)
+    pass

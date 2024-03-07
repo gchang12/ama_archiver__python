@@ -10,9 +10,6 @@ This module defines functions that will help compile and validate an index for t
 - get_urlid: Returns the url ID for a given URL.
 - get_full_url: Returns full URL for the given url_id (i.e. str that completes the url template, and transforms it into a functioning URL)
 """
-# TODO: Document and touch-up
-# TODO: Add unit tests to complement these functions
-# TODO: Figure out what other src/* files do in the usual way.
 
 import requests as r
 from bs4 import BeautifulSoup
@@ -26,19 +23,27 @@ def fetch_raw_index(url: str) -> str:
     """
     Fetches HTML from specified URL, and returns it as a str-object.
     """
+    logging.info("url = %r", url)
     response = r.get(url)
     # Note: raises error
     #response.raise_for_status()
+    logging.info("Now fetching text from requests.get(url)")
     raw_index = response.text
+    logging.info("Text-fetch successful. Returning requests.get(url).text")
     return raw_index
 
 def save_raw_index(raw_index: str, odir_path: Path, ofname: str) -> None:
     """
     Saves 'raw_index' str to the file './odir_path/ofname.html'.
     """
+    logging.info("raw_index = (...)")
+    logging.info("odir_path = %r", odir_path)
+    logging.info("ofname = %r", ofname)
     full_opath = odir_path.joinpath(ofname + ".html")
     if not odir_path.is_dir():
+        logging.info("%r does not exist. Making directory.", odir_path)
         odir_path.mkdir()
+    logging.info("Writing 'raw_index' to %r", full_opath)
     full_opath.write_text(raw_index)
 
 def compile_ama_index(raw_index: str, start_text: str) -> List[dict]:
@@ -52,21 +57,23 @@ def compile_ama_index(raw_index: str, start_text: str) -> List[dict]:
     <hr />
     <p><strong>cc_name2</strong></p>
     """
+    logging.info("raw_index = (...)")
+    logging.info("start_text = %r", start_text)
+    logging.info("Creating BeautifulSoup object from 'raw_index'.")
     ama_soup = BeautifulSoup(raw_index, 'html.parser')
     for strong in ama_soup.find_all("strong"):
         # find first strong node with FIRST_CC_NAME, and set to 'strong'
-        #print(strong)
         if strong.text != start_text + ":":
             continue
         current_node = strong
-        #print([sibling for sibling in current_node.parent.next_siblings])
         cc_name = strong.text[:-1]
+        logging.info("'start_text' found in tree: %r. Setting as 'cc_name'.", cc_name)
         break
     ama_index = []
     try:
         current_node
     except UnboundLocalError as ul_err:
-        print(f"Unable to find <strong> node with: '{start_text}'")
+        logging.critical("Unable to find <strong> node with: %r", start_text)
         raise ul_err
     for sibling in current_node.parent.next_siblings:
         # skipping blanks
@@ -77,19 +84,21 @@ def compile_ama_index(raw_index: str, start_text: str) -> List[dict]:
         # Determine if cc or fan. Create tree: {cc_name -> [name for name in fan_names]}
         if sibling.find("strong") is not None:
             cc_name = sibling.strong.text
+            logging.info("New 'cc_name' found: %r", cc_name)
         elif sibling.find("a") is not None:
             a = sibling.find("a")
             fan_name = a.text
             url = a['href']
-            ama_index.append(
-                {
-                    "fan_name": fan_name,
-                    "cc_name": cc_name,
-                    "url": url,
-                }
-            )
+            ama_record = {
+                "fan_name": fan_name,
+                "cc_name": cc_name,
+                "url": url,
+            }
+            logging.debug("New fan question found: %r. Appending to index.", ama_record)
+            ama_index.append(ama_record)
         else:
             raise Exception("Unexpected tag not found. Not strong, a, hr, or NaviString: %r", sibling)
+    logging.info("A total of %d record(s) were found.")
     return ama_index
 
 def identify_duplicates(ama_index: List[dict]) -> List[dict]:
@@ -110,21 +119,10 @@ def identify_duplicates(ama_index: List[dict]) -> List[dict]:
         if len(url_record) == 1:
             continue
         dup_records.append( {url: url_record} )
+    for indexno, dup in enumerate(dup_records, start=1):
+        logging.info("duplicate %d found: %r", indexno, dup)
     return dup_records
 
-def _identify_url_template(ama_index: List[dict]):
-    """
-    Identifies which substring is common to all URLs in the ama_index.
-    """
-    # start with base.
-    # compare to next. diminish if no match
-    url_list = []
-    for ama_record in ama_index:
-        url = ama_record["url"]
-        url_list.append(url)
-
-# Note: I cheated to write these two functions.
-#       I didn't formulate an algorithm to determine the longest substring common to all URLs
 def get_urlid(url: str) -> str:
     """
     Extracts the URL id from a given URL string.
@@ -137,17 +135,20 @@ def get_url(url_id: str) -> str:
     Forms a complete URL from the url_id parameter, and returns it as a str-object.
     """
     url = f"https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/{url_id}/?context=3"
-    return url
+    return url.replace("www.reddit.com", "old.reddit.com")
 
-# Note: Why do we need an extra table?
-# Answer: In case some duplicates are found, and we must correct the url_id's
 def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:
     """
     Saves ama_index := [{field1: value1, field2: value2, ...}] to full_dbpath in SQL format.
     """
-    #full_dbpath = Path(ODIR_NAME, LC_DBNAME + ".db")
     with sqlite3.connect(full_dbpath) as cnxn:
-        crs = cnxn.execute("CREATE TABLE IF NOT EXISTS ama_index(cc_name TEXT, fan_name TEXT, url_id TEXT);")
+        crs = cnxn.execute("""
+            CREATE TABLE IF NOT EXISTS ama_index(
+                cc_name TEXT NOT NULL,
+                fan_name TEXT NOT NULL,
+                url_id TEXT NOT NULL
+            );
+            """)
         crs.executemany("INSERT INTO ama_index VALUES(:cc_name, :fan_name, :url_id);", ama_index)
 
 if __name__ == '__main__':

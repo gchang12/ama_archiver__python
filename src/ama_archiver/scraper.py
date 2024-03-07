@@ -17,7 +17,7 @@ import sqlite3
 from typing import List
 import logging
 
-def fetch_ama_query(url: str, ama_query):
+def fetch_ama_query(url: str, ama_query: dict[str, str]):
     """
     """
     # new version no longer works for scraping

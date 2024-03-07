@@ -11,6 +11,8 @@ This module defines functions that will help compile and validate an index for t
 - get_full_url: Returns full URL for the given url_id (i.e. str that completes the url template, and transforms it into a functioning URL)
 """
 
+from ama_archiver.constants import URL_TEMPLATE
+
 import requests as r
 from bs4 import BeautifulSoup
 
@@ -83,7 +85,7 @@ def compile_ama_index(raw_index: str, start_text: str) -> List[dict]:
             continue
         # Determine if cc or fan. Create tree: {cc_name -> [name for name in fan_names]}
         if sibling.find("strong") is not None:
-            cc_name = sibling.strong.text
+            cc_name = sibling.strong.text[:-1]
             logging.info("New 'cc_name' found: %r", cc_name)
         elif sibling.find("a") is not None:
             a = sibling.find("a")
@@ -134,7 +136,10 @@ def get_url(url_id: str) -> str:
     """
     Forms a complete URL from the url_id parameter, and returns it as a str-object.
     """
-    url = f"https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/{url_id}/?context=3"
+    url_template = list(URL_TEMPLATE)
+    url_template[-2] = url_id
+    url = "/".join(url_template)
+    #url = f"https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/{url_id}/?context=3"
     return url.replace("www.reddit.com", "old.reddit.com")
 
 def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:

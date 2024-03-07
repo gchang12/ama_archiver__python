@@ -46,7 +46,7 @@ class AmaIndexerTest(unittest.TestCase):
             <p><a href="2">fan_name2</a></p>
             <p><a href="1">fan_name3</a></p>
             <hr />
-            <p><strong>cc_name2</strong></p>
+            <p><strong>cc_name2:</strong></p>
             <p><a href="3">fan_name4</a></p>
             <p><a href="4">fan_name5</a></p>
         """

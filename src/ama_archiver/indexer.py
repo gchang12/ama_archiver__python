@@ -24,6 +24,8 @@ import logging
 def fetch_raw_index(url: str) -> str:
     """
     Fetches HTML from specified URL, and returns it as a str-object.
+
+    - url: Source to get HTML from.
     """
     logging.info("url = %r", url)
     response = r.get(url)
@@ -37,6 +39,10 @@ def fetch_raw_index(url: str) -> str:
 def save_raw_index(raw_index: str, odir_path: Path, ofname: str) -> None:
     """
     Saves 'raw_index' str to the file './odir_path/ofname'.
+
+    - raw_index: Raw HTML as str.
+    - odir_path: Path of output directory.
+    - ofname: Name of file to save `raw_index` to.
     """
     logging.info("raw_index = (...)")
     logging.info("odir_path = %r", odir_path)
@@ -50,14 +56,15 @@ def save_raw_index(raw_index: str, odir_path: Path, ofname: str) -> None:
 
 def compile_ama_index(raw_index: str, start_text: str) -> List[dict]:
     """
-    Compiles index := {cc_name: [name for name in fan_names]} from HTML of the form:
-
-    <p><strong>cc_name1</strong></p>
+    Compiles index := {cc_name: [name for name in fan_names]} from HTML of the form: <p><strong>cc_name1</strong></p>
     <p><a href=url>fan_name1</a></p>
     <p><a href=url>fan_name2</a></p>
     <p><a href=url>fan_name3</a></p>
     <hr />
     <p><strong>cc_name2</strong></p>
+
+    - raw_index: Raw HTML as str.
+    - start_text: The text to search <strong> tags for.
     """
     logging.info("raw_index = (...)")
     logging.info("start_text = %r", start_text)
@@ -106,6 +113,8 @@ def compile_ama_index(raw_index: str, start_text: str) -> List[dict]:
 def identify_duplicates(ama_index: List[dict]) -> List[dict]:
     """
     Compiles a list of duplicate URLs for a given (cc_name, fan_name) pair, and returns that list.
+
+    - ama_index: List of ama_index records.
     """
     url_dict = {}
     for ama_record in ama_index:
@@ -128,13 +137,17 @@ def identify_duplicates(ama_index: List[dict]) -> List[dict]:
 def get_urlid(url: str) -> str:
     """
     Extracts the URL id from a given URL string.
+
+    - url: URL whose url_id is to be extracted.
     """
     url_id = url.split("/")[-2]
     return url_id
 
 def get_url(url_id: str) -> str:
     """
-    Forms a complete URL from the url_id parameter, and returns it as a str-object.
+    Forms a complete old-Reddit URL from the url_id parameter, and returns it as a str-object.
+
+    - url_id: The part of the URL used to form a complete URL.
     """
     url_template = list(URL_TEMPLATE)
     url_template[-2] = url_id
@@ -145,6 +158,9 @@ def get_url(url_id: str) -> str:
 def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:
     """
     Saves ama_index := [{field1: value1, field2: value2, ...}] to full_dbpath in SQL format.
+
+    - ama_index: List of ama_index dict-records.
+    - full_dbpath: Tells function where to save `ama_index`
     """
     with sqlite3.connect(full_dbpath) as cnxn:
         crs = cnxn.execute("""

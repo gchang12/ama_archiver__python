@@ -11,14 +11,16 @@ from bs4 import BeautifulSoup
 
 from pathlib import Path
 import sqlite3
-from typing import List
 import logging
 
-def fetch_ama_query(url: str, ama_query: dict[str, str]) -> dict[str, str]:
+def fetch_ama_query(url: str, ama_query: dict) -> None:
     """
     Fetches `question_text` and `answer_text` values for a given URL.
 
-    Returns: {'question_text': ..., 'answer_text': ...}
+    - url: source whence data is to be fetched.
+    - ama_query: dict to store fetched data. Initialize outside function.
+
+    return: {'question_text': ..., 'answer_text': ...}
     """
     # new version no longer works for scraping
     response = r.get(url.replace("www.reddit.com", "old.reddit.com"))
@@ -32,15 +34,17 @@ def fetch_ama_query(url: str, ama_query: dict[str, str]) -> dict[str, str]:
             continue
         elif indexno == 1:
             question_text = comment.text
-            ama_query["question_text"] = question_text
+            ama_query["question_text"] = question_text.strip()
         elif indexno == 2:
             answer_text = comment.text
-            ama_query["answer_text"] = answer_text
-    return ama_query
+            ama_query["answer_text"] = answer_text.strip()
 
-def save_ama_query_to_db(ama_query: dict[str, str], full_dbpath: Path) -> None:
+def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
     """
     Creates 'ama_queries' table in `full_dbpath`, and saves `ama_query` into the table.
+
+    - ama_query: populated dict to be loaded into the database.
+    - full_dbpath: tells the function where the database file is.
     """
     #logging.info("Saving `ama_query` to %s", full_dbpath)
     with sqlite3.connect(full_dbpath) as cnxn:

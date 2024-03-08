@@ -37,6 +37,7 @@ class AmaScraperTest(unittest.TestCase):
         url = self.url
         url_id = self.url_id
         actual = {}
+        # TODO: Why is this returning a str(tuple(str)) version of the thing?
         mock_rget.return_value.text = \
         f"""
             <div class='usertext-body may-blank-within md-container'>
@@ -51,11 +52,10 @@ class AmaScraperTest(unittest.TestCase):
         """.strip()
         while set(actual) != {"question_text", "answer_text"}:
             scraper.fetch_ama_query(url, actual)
-        ama_query = {"url_id": url_id}
+        actual["url_id"] = url_id
         expected = self.ama_query
         self.assertDictEqual(actual, expected)
 
-    # TODO: Learn about sqlite3 module before proceeding.
     def test_save_ama_query_to_db(self):
         """
         """
@@ -66,7 +66,7 @@ class AmaScraperTest(unittest.TestCase):
         scraper.save_ama_query_to_db(ama_query, full_dbpath)
         actual = {}
         with sqlite3.connect(full_dbpath) as cnxn:
-            #cnxn.row_factory = sqlite3.Row
+            cnxn.row_factory = sqlite3.Row
             result = cnxn.execute("SELECT url_id, question_text, answer_text FROM ama_queries;")
             test_record = result.fetchone()
             for field in test_record.keys():
@@ -74,3 +74,4 @@ class AmaScraperTest(unittest.TestCase):
         full_dbpath.unlink()
         expected = self.ama_query
         self.assertDictEqual(actual, expected)
+

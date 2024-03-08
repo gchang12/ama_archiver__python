@@ -34,10 +34,10 @@ def fetch_ama_query(url: str, ama_query: dict) -> None:
             continue
         elif indexno == 1:
             question_text = comment.text
-            ama_query["question_text"] = question_text.strip()
+            ama_query["question_text"] = question_text
         elif indexno == 2:
             answer_text = comment.text
-            ama_query["answer_text"] = answer_text.strip()
+            ama_query["answer_text"] = answer_text
 
 def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
     """
@@ -47,6 +47,7 @@ def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
     - full_dbpath: tells the function where the database file is.
     """
     #logging.info("Saving `ama_query` to %s", full_dbpath)
+    #ama_query = {field: value.replace("\\n", "") for field, value in ama_query.items()}
     with sqlite3.connect(full_dbpath) as cnxn:
         crs = cnxn.execute("""
                 CREATE TABLE IF NOT EXISTS ama_queries(
@@ -56,3 +57,4 @@ def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
                 );
                 """)
         crs.execute("INSERT INTO ama_queries VALUES(:url_id, :question_text, :answer_text);", ama_query)
+

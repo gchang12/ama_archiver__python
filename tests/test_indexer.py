@@ -77,7 +77,7 @@ class AmaIndexerTest(unittest.TestCase):
         """
         raw_index = "<html></html>"
         odir_path = Path("")
-        ofname = "test-html"
+        ofname = "test-html.html"
         vfile = io.StringIO()
         def write_to_vfile(text):
             vfile.write(text)
@@ -175,6 +175,3 @@ class AmaIndexerTest(unittest.TestCase):
         self.assertListEqual(expected, actual)
         # select from the database
         # assert selection equal to ama_index
-
-if __name__ == '__main__':
-    pass

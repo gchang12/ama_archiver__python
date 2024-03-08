@@ -36,12 +36,12 @@ def fetch_raw_index(url: str) -> str:
 
 def save_raw_index(raw_index: str, odir_path: Path, ofname: str) -> None:
     """
-    Saves 'raw_index' str to the file './odir_path/ofname.html'.
+    Saves 'raw_index' str to the file './odir_path/ofname'.
     """
     logging.info("raw_index = (...)")
     logging.info("odir_path = %r", odir_path)
     logging.info("ofname = %r", ofname)
-    full_opath = odir_path.joinpath(ofname + ".html")
+    full_opath = odir_path.joinpath(ofname)
     if not odir_path.is_dir():
         logging.info("%r does not exist. Making directory.", odir_path)
         odir_path.mkdir()
@@ -155,6 +155,3 @@ def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:
             );
             """)
         crs.executemany("INSERT INTO ama_index VALUES(:cc_name, :fan_name, :url_id);", ama_index)
-
-if __name__ == '__main__':
-    pass

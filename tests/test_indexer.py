@@ -84,7 +84,7 @@ class AmaIndexerTest(unittest.TestCase):
         mock_writetext.side_effect = write_to_vfile
         mock_isdir.return_value = False
         indexer.save_raw_index(raw_index, odir_path, ofname)
-        mock_mkdir.assert_called_once_with()
+        mock_mkdir.assert_called_once_with(exist_ok=True)
         self.assertEqual(raw_index, vfile.getvalue())
 
     def test_compile_ama_index(self):
@@ -94,7 +94,7 @@ class AmaIndexerTest(unittest.TestCase):
         Also tests that unexpected exceptions are accounted for.
         """
         raw_index = self.raw_index
-        start_text = self.start_text
+        start_text = self.start_text + ":"
         expected_index = [
             {"cc_name": "cc_name1", "fan_name": "fan_name1", "url": "1"},
             {"cc_name": "cc_name1", "fan_name": "fan_name2", "url": "2"},
@@ -115,10 +115,12 @@ class AmaIndexerTest(unittest.TestCase):
         """
         Tests that all duplicates are found from the index generated via HTML tree.
         """
-        ama_index = self.ama_index
+        ama_index = self.ama_index.copy()
         expected = [
             {"1": [("cc_name1", "fan_name1"), ("cc_name1", "fan_name3")]},
         ]
+        for record in ama_index:
+            record["url_id"] = record.pop('url')
         actual = indexer.identify_duplicates(ama_index)
         self.assertEqual(expected, actual)
 
@@ -175,3 +177,35 @@ class AmaIndexerTest(unittest.TestCase):
         self.assertListEqual(expected, actual)
         # select from the database
         # assert selection equal to ama_index
+
+    def test_load_ama_index(self):
+        """
+        Tests that the same dict-list saved is the same as the one that is loaded via 'load_ama_index'.
+        """
+        full_dbpath = Path("ama_index-load_test.db")
+        if full_dbpath.exists():
+            full_dbpath.unlink()
+        expected = self.ama_index.copy()
+        for record in expected:
+            record['url_id'] = record.pop("url")
+        with sqlite3.connect(full_dbpath) as cnxn:
+            crs = cnxn.execute("""
+                CREATE TABLE ama_index(
+                    cc_name TEXT NOT NULL,
+                    fan_name TEXT NOT NULL,
+                    url_id TEXT NOT NULL
+                );
+                """)
+            crs.executemany("INSERT INTO ama_index VALUES(:cc_name, :fan_name, :url_id);", expected)
+        actual = indexer.load_ama_index(full_dbpath)
+        full_dbpath.unlink()
+        def original_order(element):
+            """
+            Function to sort dict-list by order in original self.ama_index.
+
+            Assume: All entries in actual are contained in self.ama_index.
+            """
+            return self.ama_index.index(element)
+        actual.sort(key=original_order)
+        self.assertListEqual(actual, expected)
+

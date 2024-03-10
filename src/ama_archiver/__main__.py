@@ -39,9 +39,10 @@ def validate_urls():
     full_dbpath = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
     ama_index = indexer.load_ama_index(full_dbpath)
     dup_records = indexer.identify_duplicates(ama_index)
-    while dup_records:
-        dup = dup_records.pop()
-        print("Duplicate found: %r" % dup)
+    if dup_records:
+        for dup in dup_records:
+            print("Duplicate found: %r" % dup)
+        raise Exception
     else:
         print("No duplicates found!")
 
@@ -80,4 +81,9 @@ def make_ama_queries() -> None:
         queried_urls.add(url_id)
 
 logging.basicConfig(level=logging.INFO)
+
+full_dbpath = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
+if not full_dbpath.exists():
+    make_ama_index()
+validate_urls()
 make_ama_queries()

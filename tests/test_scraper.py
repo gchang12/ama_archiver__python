@@ -37,7 +37,6 @@ class AmaScraperTest(unittest.TestCase):
         url = self.url
         url_id = self.url_id
         actual = {}
-        # TODO: Why is this returning a str(tuple(str)) version of the thing?
         mock_rget.return_value.text = \
         f"""
             <div class='usertext-body may-blank-within md-container'>
@@ -74,4 +73,36 @@ class AmaScraperTest(unittest.TestCase):
         full_dbpath.unlink()
         expected = self.ama_query
         self.assertDictEqual(actual, expected)
+
+    def test_load_ama_queries_from_db(self):
+        """
+        """
+        generic_query = {
+            "url_id": "url_id",
+            "question_text": "question_text",
+            "answer_text": "answer_text",
+            }
+        expected = [
+            self.ama_query,
+            generic_query,
+            ]
+        full_dbpath = Path("ama_queries-load_test.db")
+        full_dbpath.unlink(missing_ok=True)
+        with sqlite3.connect(full_dbpath) as cnxn:
+            crs = cnxn.execute("""
+                    CREATE TABLE IF NOT EXISTS ama_queries(
+                        url_id TEXT PRIMARY KEY,
+                        question_text TEXT NOT NULL,
+                        answer_text TEXT NOT NULL
+                    );
+                    """)
+            crs.executemany("INSERT INTO ama_queries VALUES(:url_id, :question_text, :answer_text);", expected)
+        actual = scraper.load_ama_queries_from_db(full_dbpath)
+        full_dbpath.unlink()
+        def original_order(record: dict):
+            """
+            """
+            return expected.index(record)
+        actual.sort(key=original_order)
+        self.assertListEqual(expected, actual)
 

@@ -170,7 +170,8 @@ def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:
     - full_dbpath: Tells function where to save `ama_index`
     """
     if full_dbpath.exists():
-        logging.info("%s already exists. Skipping.")
+        logging.info("%r already exists. Skipping.", full_dbpath)
+        return None
     with sqlite3.connect(full_dbpath) as cnxn:
         crs = cnxn.execute("""
             CREATE TABLE IF NOT EXISTS ama_index(

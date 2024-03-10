@@ -38,6 +38,7 @@ ama_queries
 - answer_text TEXT NOT NULL
 
 # identifying duplicates
-SELECT * FROM ama_index WHERE fan_name IN (SELECT fan_name FROM ama_index GROUP BY fan_name HAVING COUNT(fan_name) > 1;
+SELECT * FROM ama_index WHERE url_id IN (SELECT url_id FROM ama_index GROUP BY url_id HAVING COUNT(url_id) > 1);
 
 # ama_archiver.scraper: Check if results exist, then scrape otherwise, and save to database
+

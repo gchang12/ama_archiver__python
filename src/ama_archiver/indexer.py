@@ -50,7 +50,7 @@ def save_raw_index(raw_index: str, odir_path: Path, ofname: str) -> None:
     full_opath = odir_path.joinpath(ofname)
     if not odir_path.is_dir():
         logging.info("%r does not exist. Making directory.", odir_path)
-        odir_path.mkdir()
+        odir_path.mkdir(exist_ok=True)
     logging.info("Writing 'raw_index' to %r", full_opath)
     full_opath.write_text(raw_index)
 
@@ -72,7 +72,7 @@ def compile_ama_index(raw_index: str, start_text: str) -> List[dict]:
     ama_soup = BeautifulSoup(raw_index, 'html.parser')
     for strong in ama_soup.find_all("strong"):
         # find first strong node with FIRST_CC_NAME, and set to 'strong'
-        if strong.text != start_text + ":":
+        if strong.text != start_text:
             continue
         current_node = strong
         cc_name = strong.text[:-1]
@@ -116,11 +116,18 @@ def identify_duplicates(ama_index: List[dict]) -> List[dict]:
 
     - ama_index: List of ama_index records.
     """
+    #sqlite> SELECT * FROM ama_index WHERE url_id IN (SELECT url_id FROM ama_index GROUP BY url_id HAVING COUNT(url_id) > 1);
+    #cc_name      fan_name    url_id    
+    #-----------  ----------  ----------
+    #Daron Nefcy  Joe_Zt      evw8mcl       -> evw8g9o
+    #Daron Nefcy  ShinySatur  evw8mcl   
+    #Adam McArth  Hiofshao_Q  evwbcnk   
+    #Adam McArth  sloppyjeau  evwbcnk       -> evwbgza
     url_dict = {}
     for ama_record in ama_index:
         cc_name = ama_record["cc_name"]
         fan_name = ama_record["fan_name"]
-        url = ama_record["url"]
+        url = ama_record["url_id"]
         if url in url_dict:
             url_dict[url].append((cc_name, fan_name))
         else:
@@ -162,6 +169,8 @@ def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:
     - ama_index: List of ama_index dict-records.
     - full_dbpath: Tells function where to save `ama_index`
     """
+    if full_dbpath.exists():
+        logging.info("%s already exists. Skipping.")
     with sqlite3.connect(full_dbpath) as cnxn:
         crs = cnxn.execute("""
             CREATE TABLE IF NOT EXISTS ama_index(
@@ -171,3 +180,19 @@ def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:
             );
             """)
         crs.executemany("INSERT INTO ama_index VALUES(:cc_name, :fan_name, :url_id);", ama_index)
+
+# TODO: Add test for this function
+def load_ama_index(full_dbpath: Path) -> List[dict]:
+    """
+    Loads from `full_dbpath` the table `ama_index` as List[dict] object.
+
+    - full_dbpath: Tells function where to find `ama_index`
+    """
+    with sqlite3.connect(full_dbpath) as cnxn:
+        cnxn.row_factory = sqlite3.Row
+        res = cnxn.execute("""
+            SELECT cc_name, fan_name, url_id FROM ama_index;
+        """)
+        ama_index = [dict(row) for row in res.fetchall()]
+    return ama_index
+

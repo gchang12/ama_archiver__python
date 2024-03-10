@@ -9,9 +9,10 @@ This module defines constants for web-scraping and saving.
 """
 
 FIRST_CC_NAME = "Daron Nefcy"
+OG_URL = "https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/"
 LC_URL = "https://old.reddit.com/r/StarVStheForcesofEvil/comments/clnrdv/link_compendium_of_questions_and_answers_from_the/"
 LC_FNAME = "link-compendium"
-LC_DBNAME = "ama_database"
+AMA_DBNAME = "ama_database"
 ODIR_NAME = "output"
 URL_TEMPLATE = tuple("https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything//?context=3".split("/"))
 

@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import sqlite3
 import logging
+from typing import List
 
 def fetch_ama_query(url: str, ama_query: dict) -> None:
     """
@@ -60,4 +61,26 @@ def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
                 """)
         crs.execute("INSERT INTO ama_queries VALUES(:url_id, :question_text, :answer_text);", ama_query)
         logging.info("Successfully saved %s to file: %s", ama_query, full_dbpath)
+
+# TODO: Add test for this function
+def load_ama_queries_from_db(full_dbpath: Path) -> List[dict]:
+    """
+    Loads 'ama_queries' table from `full_dbpath` into List[dict].
+
+    - full_dbpath: Tells function where to find `ama_queries`
+    """
+    with sqlite3.connect(full_dbpath) as cnxn:
+        cnxn.execute("""
+            CREATE TABLE IF NOT EXISTS ama_queries(
+                url_id TEXT PRIMARY KEY,
+                question_text TEXT NOT NULL,
+                answer_text TEXT NOT NULL
+            );
+            """)
+        cnxn.row_factory = sqlite3.Row
+        res = cnxn.execute("""
+            SELECT url_id, question_text, answer_text FROM ama_queries;
+            """)
+        ama_queries = [dict(row) for row in res.fetchall()]
+    return ama_queries
 

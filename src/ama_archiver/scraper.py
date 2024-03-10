@@ -20,7 +20,7 @@ def fetch_ama_query(url: str, ama_query: dict) -> None:
     - url: source whence data is to be fetched.
     - ama_query: dict to store fetched data. Initialize outside function.
 
-    return: {'question_text': ..., 'answer_text': ...}
+    update: {'question_text': ..., 'answer_text': ...}
     """
     # new version no longer works for scraping
     response = r.get(url.replace("www.reddit.com", "old.reddit.com"))
@@ -34,10 +34,12 @@ def fetch_ama_query(url: str, ama_query: dict) -> None:
             continue
         elif indexno == 1:
             question_text = comment.text
-            ama_query["question_text"] = question_text
+            ama_query["question_text"] = question_text.strip()
+            #logging.info("`question_text` found.")
         elif indexno == 2:
             answer_text = comment.text
-            ama_query["answer_text"] = answer_text
+            ama_query["answer_text"] = answer_text.strip()
+            #logging.info("`answer_text` found.")
 
 def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
     """
@@ -57,4 +59,5 @@ def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
                 );
                 """)
         crs.execute("INSERT INTO ama_queries VALUES(:url_id, :question_text, :answer_text);", ama_query)
+        logging.info("Successfully saved %s to file: %s", ama_query, full_dbpath)
 

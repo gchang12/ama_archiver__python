@@ -21,13 +21,13 @@ class AmaScraperTest(unittest.TestCase):
         """
         """
         self.url = "https://old.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/evw3fne/?context=3"
-        self.url_id = "evw3fne"
-        self.question_text = "Do androids dream of electric sheep?",
-        self.answer_text = "Ask Philip K. Dick, guy.",
+        self.url_id = "spongebob"
+        self.question_text = "Do androids dream of electric sheep?"
+        self.answer_text = "Ask Philip K. Dick, guy."
         self.ama_query = {
-            "url_id": "spongebob",
-            "question_text": "Do androids dream of electric sheep?",
-            "answer_text": "Ask Philip K. Dick, guy.",
+            "url_id": self.url_id,
+            "question_text": self.question_text,
+            "answer_text": self.answer_text,
         }
 
     @patch("requests.get")

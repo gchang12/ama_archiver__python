@@ -14,9 +14,9 @@
 
 # ama_archiver
 
-> Add a short description here!
+> Scrapes the SVTFOE Reddit Q&A session.
 
-A longer description of your project goes here...
+Scrapes Reddit virtual Q&A session for details on lore and backstory of SVTFOE.
 
 
 <!-- pyscaffold-notes -->
@@ -37,8 +37,9 @@ ama_queries
 - question_text TEXT NOT NULL
 - answer_text TEXT NOT NULL
 
-# identifying duplicates
+# to identify duplicates via SQL query.
 SELECT * FROM ama_index WHERE url_id IN (SELECT url_id FROM ama_index GROUP BY url_id HAVING COUNT(url_id) > 1);
 
-# ama_archiver.scraper: Check if results exist, then scrape otherwise, and save to database
-
+# source URLs
+https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/
+https://old.reddit.com/r/StarVStheForcesofEvil/comments/clnrdv/link_compendium_of_questions_and_answers_from_the/

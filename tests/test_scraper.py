@@ -15,10 +15,18 @@ from unittest.mock import patch
 
 class AmaScraperTest(unittest.TestCase):
     """
+    Contains tests to see that 'scraper' module works as intended.
     """
 
     def setUp(self):
         """
+        Contains objects meant as essential parameters for 'scraper' module.
+
+        url: Sample of URL to scrape Q&A from.
+        url_id: Substring of URL that identifies a URL.
+        question_text: First item to be scraped.
+        answer_text: Second item to be scraped.
+        ama_query: Sample record of what is to be returned from scraping operations.
         """
         self.url = "https://old.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/evw3fne/?context=3"
         self.url_id = "spongebob"
@@ -29,10 +37,13 @@ class AmaScraperTest(unittest.TestCase):
             "question_text": self.question_text,
             "answer_text": self.answer_text,
         }
+        self.odir_path = Path("tests", "mock-output")
+        self.odir_path.mkdir(exist_ok=True)
 
     @patch("requests.get")
     def test_fetch_ama_query(self, mock_rget):
         """
+        Tests that function loads expected parameters into dict parameter.
         """
         url = self.url
         url_id = self.url_id
@@ -57,9 +68,10 @@ class AmaScraperTest(unittest.TestCase):
 
     def test_save_ama_query_to_db(self):
         """
+        Tests that save-operation is successful, and that saved query matches loaded query.
         """
         ama_query = self.ama_query
-        full_dbpath = Path("ama_queries-save_test.db")
+        full_dbpath = self.odir_path.joinpath("ama_queries-save_test.db")
         if full_dbpath.exists():
             full_dbpath.unlink()
         scraper.save_ama_query_to_db(ama_query, full_dbpath)
@@ -76,6 +88,7 @@ class AmaScraperTest(unittest.TestCase):
 
     def test_load_ama_queries_from_db(self):
         """
+        Tests that load-operation is successful, and that loaded query matched saved query.
         """
         generic_query = {
             "url_id": "url_id",
@@ -86,7 +99,7 @@ class AmaScraperTest(unittest.TestCase):
             self.ama_query,
             generic_query,
             ]
-        full_dbpath = Path("ama_queries-load_test.db")
+        full_dbpath = self.odir_path.joinpath("ama_queries-load_test.db")
         full_dbpath.unlink(missing_ok=True)
         with sqlite3.connect(full_dbpath) as cnxn:
             crs = cnxn.execute("""
@@ -101,6 +114,7 @@ class AmaScraperTest(unittest.TestCase):
         full_dbpath.unlink()
         def original_order(record: dict):
             """
+            For ordering the dict-list in the order per `expected`.
             """
             return expected.index(record)
         actual.sort(key=original_order)

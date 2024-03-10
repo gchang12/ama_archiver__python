@@ -1,20 +1,28 @@
 #!/usr/bin/python3
 """
+Defines functions to compile the Reddit SVTFOE AMA session.
+- make_ama_index: Scrapes index from web, reports duplicates, and saves to database.
+- validate_urls: Checks database for duplicates in `url_id` column.
+- make_ama_queries: Scrapes web for `question_text` and `answer_text`
 """
-
+l
 from ama_archiver import indexer, scraper, constants
 
 from pathlib import Path
 import logging
 from typing import List
 
-def make_ama_index():
+FULL_DBPATH = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
+
+def make_ama_index() -> None:
     """
+    Generates SQL database from HTML.
+
     1. Checks if '{ODIR_NAME}/{LC_FNAME}.html' exists.
     -  If not, it scrapes it off the web, and saves it.
     2. Compiles `ama_index` from output.
     3. Reports the number of duplicate records.
-    4. Saves `ama_index` to '{ODIR_NAME}/{LC_DBNAME}.html'
+    4. Saves `ama_index` to '{ODIR_NAME}/{LC_DBNAME}.db'
     """
     lc_dirpath = Path(constants.ODIR_NAME)
     lc_filepath = lc_dirpath.joinpath(constants.LC_FNAME + ".html")
@@ -28,16 +36,16 @@ def make_ama_index():
         url_id = indexer.get_urlid(ama_record.pop("url"))
         ama_record["url_id"] = url_id
     indexer.identify_duplicates(ama_index)
-    full_dbpath = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
-    indexer.save_ama_index(ama_index, full_dbpath)
+    indexer.save_ama_index(ama_index, FULL_DBPATH)
 
-def validate_urls():
+def validate_urls() -> None:
     """
+    Scans database for duplicate URL strings.
+
     1. Checks if `url_id` column contains no duplicates in the database.
     2. Reports either absence or presence of duplicates.
     """
-    full_dbpath = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
-    ama_index = indexer.load_ama_index(full_dbpath)
+    ama_index = indexer.load_ama_index(FULL_DBPATH)
     dup_records = indexer.identify_duplicates(ama_index)
     if dup_records:
         for dup in dup_records:
@@ -48,13 +56,14 @@ def validate_urls():
 
 def make_ama_queries() -> None:
     """
+    Pings Reddit, and scrapes for `question_text` and `answer_text`
+
     1. Fetches list of `ama_queries` records fetched so far.
     2. Fetches list of `ama_index` records to iterate over.
     3. For each `ama_record`, fetch and save.
     """
-    full_dbpath = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
-    ama_index = indexer.load_ama_index(full_dbpath)
-    ama_queries = scraper.load_ama_queries_from_db(full_dbpath)
+    ama_index = indexer.load_ama_index(FULL_DBPATH)
+    ama_queries = scraper.load_ama_queries_from_db(FULL_DBPATH)
     queried_urls = set(row["url_id"] for row in ama_queries)
     num_records = len(ama_index)
     num_pings = 0
@@ -77,13 +86,14 @@ def make_ama_queries() -> None:
             attempt_no += 1
             num_pings += 1
         ama_query["url_id"] = url_id
-        scraper.save_ama_query_to_db(ama_query, full_dbpath)
+        scraper.save_ama_query_to_db(ama_query, FULL_DBPATH)
         queried_urls.add(url_id)
+    logging.info("All Q&A records successfully scraped. Find output in %r", FULL_DBPATH)
+
+# Run functions here.
 
 logging.basicConfig(level=logging.INFO)
 
-full_dbpath = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
-if not full_dbpath.exists():
-    make_ama_index()
+make_ama_index()
 validate_urls()
 make_ama_queries()

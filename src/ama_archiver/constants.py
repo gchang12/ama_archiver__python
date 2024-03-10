@@ -16,5 +16,3 @@ AMA_DBNAME = "ama_database"
 ODIR_NAME = "output"
 URL_TEMPLATE = tuple("https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything//?context=3".split("/"))
 
-if __name__ == '__main__':
-    pass

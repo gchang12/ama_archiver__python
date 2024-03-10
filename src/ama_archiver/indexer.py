@@ -182,7 +182,6 @@ def save_ama_index(ama_index: List[dict], full_dbpath: Path) -> None:
             """)
         crs.executemany("INSERT INTO ama_index VALUES(:cc_name, :fan_name, :url_id);", ama_index)
 
-# TODO: Add test for this function
 def load_ama_index(full_dbpath: Path) -> List[dict]:
     """
     Loads from `full_dbpath` the table `ama_index` as List[dict] object.

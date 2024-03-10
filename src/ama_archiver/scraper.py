@@ -62,7 +62,6 @@ def save_ama_query_to_db(ama_query: dict, full_dbpath: Path) -> None:
         crs.execute("INSERT INTO ama_queries VALUES(:url_id, :question_text, :answer_text);", ama_query)
         logging.info("Successfully saved %s to file: %s", ama_query, full_dbpath)
 
-# TODO: Add test for this function
 def load_ama_queries_from_db(full_dbpath: Path) -> List[dict]:
     """
     Loads 'ama_queries' table from `full_dbpath` into List[dict].

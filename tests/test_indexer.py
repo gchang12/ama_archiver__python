@@ -59,6 +59,8 @@ class AmaIndexerTest(unittest.TestCase):
         ]
         self.url = "https://old.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/evw3fne/?context=3"
         self.url_id = "evw3fne"
+        self.odir_path = Path("tests", "mock-output")
+        self.odir_path.mkdir(exist_ok=True)
 
     def test_fetch_raw_index(self):
         """
@@ -77,9 +79,12 @@ class AmaIndexerTest(unittest.TestCase):
         """
         raw_index = "<html></html>"
         odir_path = Path("")
-        ofname = "test-html.html"
+        ofname = self.odir_path.joinpath("test-html.html")
         vfile = io.StringIO()
         def write_to_vfile(text):
+            """
+            Mocks pathlib.Path.write_text; loads written text into virtual file `vfile`.
+            """
             vfile.write(text)
         mock_writetext.side_effect = write_to_vfile
         mock_isdir.return_value = False
@@ -155,7 +160,7 @@ class AmaIndexerTest(unittest.TestCase):
         for ama_record in ama_index:
             ama_record["url_id"] = ama_record["url"]
             del ama_record["url"]
-        full_dbpath = Path("ama_index-save_test.db")
+        full_dbpath = self.odir_path.joinpath("ama_index-save_test.db")
         if full_dbpath.exists():
             full_dbpath.unlink()
         indexer.save_ama_index(ama_index, full_dbpath)
@@ -182,7 +187,7 @@ class AmaIndexerTest(unittest.TestCase):
         """
         Tests that the same dict-list saved is the same as the one that is loaded via 'load_ama_index'.
         """
-        full_dbpath = Path("ama_index-load_test.db")
+        full_dbpath = self.odir_path.joinpath("ama_index-load_test.db")
         if full_dbpath.exists():
             full_dbpath.unlink()
         expected = self.ama_index.copy()

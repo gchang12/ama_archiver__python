@@ -6,7 +6,6 @@ Tests that 'indexer' module functions work as intended.
 - compile_ama_index: Compiles the Q&A index into a list of dict objects.
 - save_ama_index: Saves a Q&A index into a database file. 
 - identify_duplicates: Identifies (cc_name, fan_name) pairs whose URLs appear more than once in the index.
-- _identify_url_template: Identifies the shortest substring that is contained in all URLs. For truncating values in URL field. 
 - get_urlid: Returns the url ID for a given URL.
 - get_full_url: Returns full URL for the given url_id (i.e. str that completes the url template, and transforms it into a functioning URL)
 """

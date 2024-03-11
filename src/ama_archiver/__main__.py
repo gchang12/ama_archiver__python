@@ -5,12 +5,13 @@ Defines functions to compile the Reddit SVTFOE AMA session.
 - validate_urls: Checks database for duplicates in `url_id` column.
 - make_ama_queries: Scrapes web for `question_text` and `answer_text`
 """
-l
+
 from ama_archiver import indexer, scraper, constants
 
 from pathlib import Path
 import logging
 from typing import List
+import sqlite3
 
 FULL_DBPATH = Path(constants.ODIR_NAME, constants.AMA_DBNAME + ".db")
 
@@ -49,10 +50,10 @@ def validate_urls() -> None:
     dup_records = indexer.identify_duplicates(ama_index)
     if dup_records:
         for dup in dup_records:
-            print("Duplicate found: %r" % dup)
+            logging.info("Duplicate found: %r" % dup)
         raise Exception
     else:
-        print("No duplicates found!")
+        logging.info("No duplicates found!")
 
 def make_ama_queries() -> None:
     """
@@ -90,6 +91,29 @@ def make_ama_queries() -> None:
         queried_urls.add(url_id)
     logging.info("All Q&A records successfully scraped. Find output in %r", FULL_DBPATH)
 
+def make_filetree() -> None:
+    """
+    Creates file tree of the form: output/ama_text/{cc_name}/{fan_name}/{question,answer,url_id}.txt
+    """
+    root_path = Path(constants.ODIR_NAME, constants.FILETREE_NAME)
+    root_path.mkdir(exist_ok=True)
+    select_all = """
+        SELECT cc_name, fan_name, ama_index.url_id, ama_queries.question_text, ama_queries.answer_text
+        FROM ama_index
+        INNER JOIN ama_queries ON ama_queries.url_id = ama_index.url_id;
+    """
+    value_fields = ("url_id", "question_text", "answer_text")
+    with sqlite3.connect(FULL_DBPATH) as cnxn:
+        cnxn.row_factory = sqlite3.Row
+        for row in cnxn.execute(select_all):
+            cc_path = root_path.joinpath(row['cc_name'])
+            cc_path.mkdir(exist_ok=True)
+            fan_path = cc_path.joinpath(row['fan_name'])
+            fan_path.mkdir(exist_ok=True)
+            for field in value_fields:
+                content_file = fan_path.joinpath(field + ".txt")
+                content_file.write_text(row[field])
+
 # Run functions here.
 
 logging.basicConfig(level=logging.INFO)
@@ -97,3 +121,4 @@ logging.basicConfig(level=logging.INFO)
 make_ama_index()
 validate_urls()
 make_ama_queries()
+make_filetree()

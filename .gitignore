@@ -54,3 +54,4 @@ MANIFEST
 .python-version
 .ama_venv/
 output/
+venv/

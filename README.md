@@ -43,3 +43,5 @@ SELECT * FROM ama_index WHERE url_id IN (SELECT url_id FROM ama_index GROUP BY u
 # source URLs
 https://www.reddit.com/r/StarVStheForcesofEvil/comments/cll9u5/star_vs_the_forces_of_evil_ask_me_anything/
 https://old.reddit.com/r/StarVStheForcesofEvil/comments/clnrdv/link_compendium_of_questions_and_answers_from_the/
+
+# TODO: Turn this into a Django project.

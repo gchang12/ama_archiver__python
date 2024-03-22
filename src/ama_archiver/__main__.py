@@ -6,6 +6,8 @@ Defines functions to compile the Reddit SVTFOE AMA session.
 - make_ama_queries: Scrapes web for `question_text` and `answer_text`
 """
 
+# TODO: Implement dataclasses where applicable.
+
 from ama_archiver import indexer, scraper, constants
 
 from pathlib import Path
